@@ -14,13 +14,25 @@ class ColocationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {}
+    public function index()
+    {
+        $colocations = Colocation::with('users')->latest()->get();
+        $canCreateColocation = !$this->userHasActiveColocation(Auth::id());
+
+        return view('colocations.index', compact('colocations', 'canCreateColocation'));
+    }
 
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
+        if ($this->userHasActiveColocation(Auth::id())) {
+            return redirect()
+                ->route('colocations.index')
+                ->withErrors('You already have an active colocation. Cancel it before creating a new one.');
+        }
+
         return view('colocations.create');
     }
 
@@ -29,6 +41,12 @@ class ColocationController extends Controller
      */
     public function store(Request $request)
     {
+        if ($this->userHasActiveColocation(Auth::id())) {
+            return redirect()
+                ->route('colocations.index')
+                ->withErrors('You already have an active colocation. Cancel it before creating a new one.');
+        }
+
         $data = $request->validate([
             'name' => 'required|string|max:30',
             'description' => 'nullable|string|max:100',
@@ -67,6 +85,12 @@ class ColocationController extends Controller
 
     public function manage(Colocation $colocation)
     {
+        if ($colocation->status === 'cancelled') {
+            return redirect()
+                ->route('colocations.show', $colocation)
+                ->withErrors('This colocation is cancelled and read-only.');
+        }
+
         if (!$colocation->isOwner(Auth::id())) {
             abort(403);
         }
@@ -79,6 +103,12 @@ class ColocationController extends Controller
 
     public function leave(Colocation $colocation)
     {
+        if ($colocation->status === 'cancelled') {
+            return redirect()
+                ->route('colocations.show', $colocation)
+                ->withErrors('This colocation is cancelled and read-only.');
+        }
+
         if ($colocation->isOwner(Auth::id())) {
             return back()->withErrors('Owner cannot leave.');
         }
@@ -92,6 +122,12 @@ class ColocationController extends Controller
 
     public function cancel(Colocation $colocation)
     {
+        if ($colocation->status === 'cancelled') {
+            return redirect()
+                ->route('colocations.show', $colocation)
+                ->withErrors('This colocation is already cancelled.');
+        }
+
         if (!$colocation->isOwner(Auth::id())) {
             abort(403);
         }
@@ -127,5 +163,15 @@ class ColocationController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    private function userHasActiveColocation(int $userId): bool
+    {
+        return Colocation::where('status', 'active')
+            ->whereHas('users', function ($query) use ($userId) {
+                $query->where('users.id', $userId)
+                    ->whereNull('colocation_user.left_at');
+            })
+            ->exists();
     }
 }

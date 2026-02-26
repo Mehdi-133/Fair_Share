@@ -1,10 +1,8 @@
-<div class="overflow-x-auto -mx-6">
-    <table class="w-full text-left border-collapse">
-        <thead class="bg-slate-50/50 border-y border-slate-100">
+<div class="-mx-6 overflow-x-auto">
+    <table class="w-full border-collapse text-left">
+        <thead class="border-y border-slate-100 bg-slate-50/60">
             <tr>
-                @if(isset($head))
-                    {{ $head }}
-                @endif
+                {{ $head ?? '' }}
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
@@ -14,11 +12,19 @@
 </div>
 
 <style>
-    /* Scoping table header styles to match the SaaS look */
     thead th {
-        @apply px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgb(148 163 184);
     }
+
     tbody td {
-        @apply px-6 py-4 text-sm text-slate-600 whitespace-nowrap;
+        padding: 1rem 1.5rem;
+        font-size: 0.875rem;
+        color: rgb(71 85 105);
+        white-space: nowrap;
     }
 </style>

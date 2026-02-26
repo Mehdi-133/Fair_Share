@@ -1,31 +1,61 @@
 <x-app-layout>
-    <div class="flex justify-between items-end mb-8">
+    <section class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-            <h1 class="text-3xl font-bold text-slate-900">Your Colocations</h1>
-            <p class="text-slate-500">Manage your shared spaces or join a new one.</p>
+            <h2 class="text-2xl font-bold tracking-tight text-slate-900">Colocations</h2>
+            <p class="text-slate-500">View and manage your shared accommodations.</p>
         </div>
-        <x-button>+ Create New Space</x-button>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="group relative bg-white border-2 border-indigo-500 rounded-2xl p-6 shadow-xl shadow-indigo-100 ring-4 ring-indigo-50">
-            <div class="absolute top-4 right-4"><x-badge type="primary">Active</x-badge></div>
-            <h3 class="text-xl font-bold text-slate-900 mb-1">Casa Blanca Loft</h3>
-            <p class="text-sm text-slate-500 mb-6">4 Members • Casablanca, MA</p>
-            <div class="flex -space-x-2 mb-6">
-                <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=A">
-                <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=B">
-                <img class="w-8 h-8 rounded-full border-2 border-white" src="https://ui-avatars.com/api/?name=C">
-                <div class="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold">+1</div>
+        @if(($canCreateColocation ?? true))
+            <a href="{{ route('colocations.create') }}"><x-button>Create Colocation</x-button></a>
+        @else
+            <div class="text-left md:text-right">
+                <x-button disabled>Create Colocation</x-button>
+                <p class="mt-1 text-xs text-amber-700">Cancel your active colocation to create a new one.</p>
             </div>
-            <x-button variant="primary" class="w-full">Open Dashboard</x-button>
-        </div>
+        @endif
+    </section>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-all group">
-            <h3 class="text-xl font-bold text-slate-900 mb-1">Summer Beach House</h3>
-            <p class="text-sm text-slate-500 mb-6">2 Members • Tangier, MA</p>
-            <div class="mb-6 h-8 flex items-center text-xs text-slate-400 italic">Archived on Sept 2025</div>
-            <x-button variant="secondary" class="w-full">View History</x-button>
+    @php
+        $items = $colocations ?? collect();
+        $canCreateColocation = $canCreateColocation ?? true;
+    @endphp
+
+    @if($items->isEmpty())
+        <x-empty-state title="No colocation yet" description="Create your first colocation to start managing shared expenses.">
+            @if($canCreateColocation)
+                <a href="{{ route('colocations.create') }}"><x-button>Create Colocation</x-button></a>
+            @else
+                <x-button disabled>Create Colocation</x-button>
+            @endif
+        </x-empty-state>
+    @else
+        <div class="grid grid-cols-1 items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
+            @foreach($items as $colocation)
+                <x-card class="h-full">
+                    <div class="flex h-full flex-col">
+                        <div class="mb-4 flex items-start justify-between gap-3">
+                            <div class="min-h-16">
+                            <h3 class="text-lg font-bold text-slate-900">{{ $colocation->name }}</h3>
+                            <p class="text-sm text-slate-500">{{ \Illuminate\Support\Str::words($colocation->description ?: 'No description', 10) }}</p>
+                            </div>
+                            <x-badge :type="$colocation->status === 'active' ? 'success' : 'warning'">{{ ucfirst($colocation->status) }}</x-badge>
+                        </div>
+
+                        <div class="mb-4 text-xs text-slate-500">{{ $colocation->users->count() }} members</div>
+
+                        @if($colocation->status !== 'cancelled')
+                            <div class="mt-auto grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                <a href="{{ route('colocations.show', $colocation) }}"><x-button class="w-full">Open</x-button></a>
+                                <a href="{{ route('colocations.manage', $colocation) }}"><x-button variant="secondary" class="w-full">Manage</x-button></a>
+                                <a href="{{ route('colocations.manage', $colocation) }}#invite-member"><x-button variant="outline" class="w-full">Invite</x-button></a>
+                            </div>
+                        @else
+                            <div class="mt-auto">
+                                <a href="{{ route('colocations.show', $colocation) }}"><x-button variant="secondary" class="w-full">Expense Details</x-button></a>
+                            </div>
+                        @endif
+                    </div>
+                </x-card>
+            @endforeach
         </div>
-    </div>
+    @endif
 </x-app-layout>

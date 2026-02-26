@@ -19,30 +19,30 @@ export default {
     plugins: [],
 };
 
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        // Our 2026 SaaS Palette
-        primary: {
-          50: '#f5f7ff',
-          100: '#ebf0fe',
-          600: '#4f46e5', // The Modern Deep Blue
-          700: '#4338ca',
-        },
-        slate: {
-          50: '#f8fafc', // Our off-white background
-          900: '#0f172a', // Our deep text color
-        }
-      },
-      borderRadius: {
-        'xl': '1rem',
-        '2xl': '1.5rem',
-        '3xl': '2rem', // Used for those extra-soft cards
-      },
-      fontFamily: {
-        sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui'],
-      },
-    },
-  },
-}
+// module.exports = {
+//   theme: {
+//     extend: {
+//       colors: {
+//         // Our 2026 SaaS Palette
+//         primary: {
+//           50: '#f5f7ff',
+//           100: '#ebf0fe',
+//           600: '#4f46e5', // The Modern Deep Blue
+//           700: '#4338ca',
+//         },
+//         slate: {
+//           50: '#f8fafc', // Our off-white background
+//           900: '#0f172a', // Our deep text color
+//         }
+//       },
+//       borderRadius: {
+//         'xl': '1rem',
+//         '2xl': '1.5rem',
+//         '3xl': '2rem', // Used for those extra-soft cards
+//       },
+//       fontFamily: {
+//         sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui'],
+//       },
+//     },
+//   },
+// }
