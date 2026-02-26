@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Models;
@@ -11,38 +10,45 @@ class Colocation extends Model
     use HasFactory;
 
     protected $fillable = [
-
         'name',
         'description',
-        'status'
-
+        'status',
+        'invite_code'
     ];
 
-
-    public function  user(){
-
-        return $this->belongsToMany(Colocation::class , 'colocation_user')
-        ->withPivot('role' , 'joined_at' , 'left_at')
-        ->withTimestamps();
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'colocation_user')
+            ->withPivot('role', 'joined_at', 'left_at')
+            ->withTimestamps();
     }
 
-    
-
-    public function membership(){
+    public function memberships()
+    {
         return $this->hasMany(MemberShip::class);
     }
 
-    public function expense(){
+    public function expenses()
+    {
         return $this->hasMany(Expense::class);
     }
 
-    public function Category(){
+    public function categories()
+    {
         return $this->hasMany(Category::class);
     }
 
-    public function invitation(){
+    public function invitations()
+    {
         return $this->hasMany(Invitation::class);
     }
 
-
+    public function isOwner($userId)
+    {
+        return $this->users()
+            ->where('user_id', $userId)
+            ->wherePivot('role', 'owner')
+            ->wherePivotNull('left_at')
+            ->exists();
+    }
 }
