@@ -1,8 +1,8 @@
 <x-app-layout>
     @php
         $currentUserId = (int) ($currentUserId ?? auth()->id());
-        $suggestions = $settlementSuggestions ?? [];
-        $balances = $memberBalances ?? [];
+        $suggestions = collect($settlementSuggestions ?? []);
+        $balances = collect($memberBalances ?? []);
     @endphp
 
     @if(!empty($noColocation))
@@ -40,13 +40,24 @@
     </div>
 
     <x-card title="Who Owes Who" subtitle="Filter to focus on your own settlements">
-        <div class="mb-4 flex flex-wrap gap-2">
-            <button type="button" data-filter="all" class="settle-filter rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700">All</button>
-            <button type="button" data-filter="you-owe" class="settle-filter rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700">You Owe</button>
-            <button type="button" data-filter="owes-you" class="settle-filter rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700">Owes You</button>
+        @if(session('success'))
+            <div class="mb-4">
+                <x-alert type="success">{{ session('success') }}</x-alert>
+            </div>
+        @endif
+        @if($errors->has('amount'))
+            <div class="mb-4">
+                <x-alert type="danger">{{ $errors->first('amount') }}</x-alert>
+            </div>
+        @endif
+
+        <div class="mb-5 inline-flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-2 shadow-sm">
+            <button type="button" data-filter="all" class="settle-filter min-w-24 rounded-xl border border-slate-900 bg-slate-900 px-4 py-2.5 text-sm font-bold tracking-tight text-white shadow-sm">All</button>
+            <button type="button" data-filter="you-owe" class="settle-filter min-w-24 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold tracking-tight text-slate-700 shadow-sm">You Owe</button>
+            <button type="button" data-filter="owes-you" class="settle-filter min-w-24 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold tracking-tight text-slate-700 shadow-sm">Owes You</button>
         </div>
 
-        @if(empty($suggestions))
+        @if($suggestions->isEmpty())
             <x-empty-state title="No settlements needed" description="Everyone is balanced for now." />
         @else
             <ul id="settlement-list" class="space-y-3">
@@ -59,13 +70,43 @@
                             $type = 'owes-you';
                         }
                     @endphp
-                    <li data-type="{{ $type }}" class="settlement-item flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition hover:border-slate-200 hover:bg-white">
-                        <span class="text-sm text-slate-700">
-                            <strong class="text-slate-900">{{ $item['from']->name }}</strong>
-                            owes
-                            <strong class="text-slate-900">{{ $item['to']->name }}</strong>
+                    <li data-type="{{ $type }}" class="settlement-item flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 transition hover:border-slate-200 hover:bg-white md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <span class="text-sm text-slate-700">
+                                <strong class="text-slate-900">{{ $item['from']->name }}</strong>
+                                owes
+                                <strong class="text-slate-900">{{ $item['to']->name }}</strong>
+                            </span>
+                            <p class="mt-1 text-sm font-bold text-slate-900">{{ number_format((float) $item['amount'], 2) }} MAD</p>
+                        </div>
+
+                        <form method="POST" action="{{ route('balances.markPaid') }}" class="shrink-0">
+                            @csrf
+                            <input type="hidden" name="from_user_id" value="{{ (int) $item['from']->id }}">
+                            <input type="hidden" name="to_user_id" value="{{ (int) $item['to']->id }}">
+                            <input type="hidden" name="amount" value="{{ number_format((float) $item['amount'], 2, '.', '') }}">
+                            <x-button type="submit" variant="secondary" class="!px-3 !py-1.5">Mark as Paid</x-button>
+                        </form>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </x-card>
+
+    <x-card title="Payment History" subtitle="Recent settlements marked as paid">
+        @php $paid = $paidSettlements ?? collect(); @endphp
+        @if($paid->isEmpty())
+            <x-empty-state title="No payments yet" description="Mark a settlement as paid to track history." />
+        @else
+            <ul class="space-y-2">
+                @foreach($paid as $row)
+                    <li class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
+                        <span class="text-slate-700">
+                            <strong class="text-slate-900">{{ $row->sender_name }}</strong>
+                            paid
+                            <strong class="text-slate-900">{{ $row->receiver_name }}</strong>
                         </span>
-                        <strong class="text-slate-900">{{ number_format((float) $item['amount'], 2) }} MAD</strong>
+                        <span class="font-semibold text-slate-900">{{ number_format((float) $row->amount, 2) }} MAD</span>
                     </li>
                 @endforeach
             </ul>
@@ -73,7 +114,7 @@
     </x-card>
 
     <x-card title="Member Balances" subtitle="Paid amount versus fair share">
-        @if(empty($balances))
+        @if($balances->isEmpty())
             <x-empty-state title="No member balances yet" description="Add expenses to generate balances." />
         @else
             <ul class="space-y-3">
@@ -114,6 +155,9 @@
                     btn.classList.toggle('bg-slate-900', active);
                     btn.classList.toggle('text-white', active);
                     btn.classList.toggle('border-slate-900', active);
+                    btn.classList.toggle('bg-white', !active);
+                    btn.classList.toggle('text-slate-700', !active);
+                    btn.classList.toggle('border-slate-200', !active);
                 });
             }
 

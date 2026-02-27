@@ -15,12 +15,6 @@
             </div>
             <div class="flex flex-wrap gap-2">
                 @if(!$isCancelled)
-                    <select class="rounded-xl border-slate-200 text-sm">
-                        <option>Monthly Filter (UI)</option>
-                        <option>January</option>
-                        <option>February</option>
-                        <option>March</option>
-                    </select>
                     <a href="{{ route('expenses.create') }}"><x-button>Add Expense</x-button></a>
                 @else
                     <x-badge type="warning">Read-only (Cancelled)</x-badge>

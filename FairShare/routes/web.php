@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::redirect('/dashboard', '/dashboard/user')->name('dashboard');
     Route::get('/profile', [UserController::class, 'profile'])->name('profile.show');
 
-    Route::view('/dashboard/user', 'dashboard.user')->name('dashboard.user');
+    Route::get('/dashboard/user', [UserController::class, 'dashboard'])->name('dashboard.user');
     Route::view('/dashboard/owner', 'dashboard.owner')->name('dashboard.owner');
     Route::get('/dashboard/admin', [AdminController::class, 'dashboard'])
         ->middleware('global.admin')
@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
     Route::get('/balances', [SettlementController::class, 'index'])->name('balances.index');
+    Route::post('/balances/mark-paid', [SettlementController::class, 'markAsPaid'])->name('balances.markPaid');
     Route::get('/admin', [AdminController::class, 'index'])
         ->middleware('global.admin')
         ->name('admin.index');

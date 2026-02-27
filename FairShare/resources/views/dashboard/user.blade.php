@@ -3,6 +3,7 @@
         $col = $colocation ?? null;
         $colocationName = $col?->name ?? 'No Active Colocation';
         $recentExpenses = $recentExpenses ?? collect();
+        $pendingSettlements = collect($pendingSettlements ?? []);
     @endphp
 
     <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-white to-amber-50 p-6">
@@ -65,4 +66,28 @@
             </ul>
         </x-card>
     </div>
+
+    <x-card title="Pending Payments" subtitle="Mark your dues as paid">
+        @if($pendingSettlements->isEmpty())
+            <x-empty-state title="No pending payments" description="You do not owe anything right now." />
+        @else
+            <ul class="space-y-3">
+                @foreach($pendingSettlements as $item)
+                    <li class="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <p class="text-sm text-slate-700">You owe <strong class="text-slate-900">{{ $item['to']->name }}</strong></p>
+                            <p class="text-sm font-bold text-slate-900">{{ number_format((float) $item['amount'], 2) }} MAD</p>
+                        </div>
+                        <form method="POST" action="{{ route('balances.markPaid') }}" class="shrink-0">
+                            @csrf
+                            <input type="hidden" name="from_user_id" value="{{ (int) $item['from']->id }}">
+                            <input type="hidden" name="to_user_id" value="{{ (int) $item['to']->id }}">
+                            <input type="hidden" name="amount" value="{{ number_format((float) $item['amount'], 2, '.', '') }}">
+                            <x-button type="submit" variant="secondary" class="!px-3 !py-1.5">Mark as Paid</x-button>
+                        </form>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </x-card>
 </x-app-layout>

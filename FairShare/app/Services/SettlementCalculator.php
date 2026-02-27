@@ -42,7 +42,7 @@ class SettlementCalculator
         ];
     }
 
-    private function buildSettlementSuggestions(Collection $balances): array
+    public function buildSettlementSuggestions(Collection $balances): array
     {
         $creditors = [];
         $debtors = [];

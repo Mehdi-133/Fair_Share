@@ -22,12 +22,22 @@ class ExpenseController extends Controller
     {
         $colocation = $this->getActiveColocationForUser((int) Auth::id());
 
+        if (! $colocation) {
+            return view('expenses.index', [
+                'expenses' => collect(),
+                'noColocation' => true,
+            ]);
+        }
+
         $expenses = Expense::with(['category', 'payer'])
             ->where('colocation_id', $colocation->id)
             ->latest()
             ->get();
 
-        return view('expenses.index', compact('expenses'));
+        return view('expenses.index', [
+            'expenses' => $expenses,
+            'noColocation' => false,
+        ]);
     }
 
     /**
@@ -36,6 +46,13 @@ class ExpenseController extends Controller
     public function create()
     {
         $colocation = $this->getActiveColocationForUser((int) Auth::id());
+
+        if (! $colocation) {
+            return redirect()
+                ->route('expenses.index')
+                ->withErrors('You need an active colocation before creating expenses.');
+        }
+
         $colocation->load('categories');
 
         return view('expenses.create', compact('colocation'));
@@ -48,6 +65,12 @@ class ExpenseController extends Controller
     {
         $userId = (int) Auth::id();
         $colocation = $this->getActiveColocationForUser($userId);
+
+        if (! $colocation) {
+            return redirect()
+                ->route('expenses.index')
+                ->withErrors('You need an active colocation before creating expenses.');
+        }
 
         $data = $this->validateExpensePayload($request);
 
@@ -92,6 +115,12 @@ class ExpenseController extends Controller
         $userId = (int) Auth::id();
         $colocation = $this->getActiveColocationForUser($userId);
 
+        if (! $colocation) {
+            return redirect()
+                ->route('expenses.index')
+                ->withErrors('You do not have an active colocation.');
+        }
+
         abort_unless($expense->colocation_id === $colocation->id, 403);
         abort_unless($expense->payer_id === $userId, 403);
 
@@ -107,6 +136,12 @@ class ExpenseController extends Controller
     {
         $userId = (int) Auth::id();
         $colocation = $this->getActiveColocationForUser($userId);
+
+        if (! $colocation) {
+            return redirect()
+                ->route('expenses.index')
+                ->withErrors('You do not have an active colocation.');
+        }
 
         abort_unless($expense->colocation_id === $colocation->id, 403);
         abort_unless($expense->payer_id === $userId, 403);
@@ -143,6 +178,12 @@ class ExpenseController extends Controller
         $userId = (int) Auth::id();
         $colocation = $this->getActiveColocationForUser($userId);
 
+        if (! $colocation) {
+            return redirect()
+                ->route('expenses.index')
+                ->withErrors('You do not have an active colocation.');
+        }
+
         abort_unless($expense->colocation_id === $colocation->id, 403);
         abort_unless($expense->payer_id === $userId, 403);
 
@@ -154,14 +195,14 @@ class ExpenseController extends Controller
             ->with('success', 'Expense deleted successfully.');
     }
 
-    private function getActiveColocationForUser(int $userId): Colocation
+    private function getActiveColocationForUser(int $userId): ?Colocation
     {
         return Colocation::where('status', 'active')
             ->whereHas('users', function ($query) use ($userId) {
                 $query->where('users.id', $userId)
                     ->whereNull('colocation_user.left_at');
             })
-            ->firstOrFail();
+            ->first();
     }
 
     private function validateExpensePayload(Request $request): array
