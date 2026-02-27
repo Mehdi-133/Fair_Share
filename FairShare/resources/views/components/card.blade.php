@@ -1,9 +1,9 @@
 @props(['title' => null, 'subtitle' => null])
-<div {{ $attributes->merge(['class' => 'bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden']) }}>
+<div {{ $attributes->merge(['class' => 'group overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md']) }}>
     @if($title)
-    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+    <div class="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-50/70 to-white px-6 py-4">
         <div>
-            <h3 class="font-semibold text-slate-800 tracking-tight">{{ $title }}</h3>
+            <h3 class="font-semibold tracking-tight text-slate-900">{{ $title }}</h3>
             @if($subtitle)<p class="text-xs text-slate-500">{{ $subtitle }}</p>@endif
         </div>
         {{ $action ?? '' }}

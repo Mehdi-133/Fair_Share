@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
@@ -42,8 +43,12 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        return redirect()
-            ->route('login')
-            ->with('message', 'Account created successfully. Please sign in.');
+        Auth::login($user);
+
+        if ($token = $request->session()->get('invitation_token')) {
+            return redirect()->route('invitations.show', $token);
+        }
+
+        return redirect()->route('dashboard');
     }
 }

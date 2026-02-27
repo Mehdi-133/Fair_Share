@@ -1,9 +1,12 @@
 <x-app-layout>
-    <div class="mx-auto max-w-2xl">
-        <div class="mb-8">
+    <div class="mx-auto max-w-2xl space-y-6">
+        <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-white to-amber-50 p-6">
+            <div class="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-cyan-200/40 blur-2xl"></div>
+            <div class="relative">
             <h2 class="text-2xl font-bold tracking-tight text-slate-900">Create Colocation</h2>
             <p class="text-slate-500">Create your shared space and invite roommates.</p>
-        </div>
+            </div>
+        </section>
 
         <x-card>
             <form method="POST" action="{{ route('colocations.store') }}" class="space-y-5">

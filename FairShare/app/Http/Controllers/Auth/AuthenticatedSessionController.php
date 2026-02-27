@@ -86,6 +86,8 @@ class AuthenticatedSessionController extends Controller
 
         $invitation->update([
             'status' => 'accepted',
+            'accepted_by' => $request->user()->id,
+            'accepted_at' => now(),
         ]);
 
         return redirect()

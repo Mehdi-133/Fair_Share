@@ -1,10 +1,13 @@
 <x-app-layout>
-    <section class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+    <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-white to-amber-50 p-6">
+        <div class="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-cyan-200/40 blur-2xl"></div>
+        <div class="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
             <h2 class="text-2xl font-bold tracking-tight text-slate-900">Global Admin Dashboard</h2>
             <p class="text-slate-500">Platform metrics and moderation controls.</p>
+            </div>
+            <a href="{{ route('admin.index') }}"><x-button>Open Admin Panel</x-button></a>
         </div>
-        <a href="{{ route('admin.index') }}"><x-button>Open Admin Panel</x-button></a>
     </section>
 
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">

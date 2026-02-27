@@ -39,16 +39,59 @@ class InvitationController extends Controller
 
 
 
-    public function showInvitation($token)
+    public function showInvitation(Request $request, $token)
     {
         $invitation = Invitation::where('token', $token)->firstOrFail();
         $colocation = $invitation->colocation;
 
-        if (! Auth::check() && $invitation->status === 'pending') {
-            session(['invitation_token' => $invitation->token]);
+        if ($invitation->status !== 'pending') {
+            return view('invitations.show', compact('invitation', 'colocation'));
         }
 
-        return view('invitations.show', compact('invitation', 'colocation'));
+        if (! Auth::check()) {
+            session(['invitation_token' => $invitation->token]);
+
+            return redirect()->route('register');
+        }
+
+        if (Auth::user()->email !== $invitation->email) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            $request->session()->put('invitation_token', $invitation->token);
+
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' => 'Please sign in with '.$invitation->email.' to accept this invitation.',
+                ]);
+        }
+
+        $alreadyMember = $colocation->users()
+            ->where('users.id', Auth::id())
+            ->exists();
+
+        if ($alreadyMember) {
+            $colocation->users()->updateExistingPivot(Auth::id(), [
+                'left_at' => null,
+            ]);
+        } else {
+            $colocation->users()->attach(Auth::id(), [
+                'role' => 'member',
+                'joined_at' => now(),
+                'left_at' => null,
+            ]);
+        }
+
+        $invitation->update([
+            'status' => 'accepted',
+            'accepted_by' => Auth::id(),
+            'accepted_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('colocations.show', $colocation)
+            ->with('message', 'Invitation accepted. Welcome to the colocation.');
     }
 
 
@@ -56,20 +99,37 @@ class InvitationController extends Controller
     {
         $invitation = Invitation::where('token', $token)->firstOrFail();
 
+        if ($invitation->status !== 'pending') {
+            return redirect()
+                ->route('invitations.show', $invitation->token);
+        }
+
         if (Auth::user()->email !== $invitation->email) {
             abort(403);
         }
 
         $colocation = $invitation->colocation;
 
-        $colocation->users()->attach(Auth::id(), [
-            'role' => 'member',
-            'joined_at' => now(),
-            'left_at' => null
-        ]);
+        $alreadyMember = $colocation->users()
+            ->where('users.id', Auth::id())
+            ->exists();
+
+        if ($alreadyMember) {
+            $colocation->users()->updateExistingPivot(Auth::id(), [
+                'left_at' => null,
+            ]);
+        } else {
+            $colocation->users()->attach(Auth::id(), [
+                'role' => 'member',
+                'joined_at' => now(),
+                'left_at' => null
+            ]);
+        }
 
         $invitation->update([
-            'status' => 'accepted'
+            'status' => 'accepted',
+            'accepted_by' => Auth::id(),
+            'accepted_at' => now(),
         ]);
 
         return redirect()->route('colocations.show', $colocation);

@@ -15,7 +15,7 @@
                 <p><strong>Status:</strong> {{ ucfirst($state) }}</p>
             </div>
 
-            @if($state === 'pending')
+            @if($state === 'pending' && auth()->check())
                 <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                     <form method="POST" action="{{ route('invitations.refuse', $invitation->token) }}">
                         @csrf
@@ -25,6 +25,12 @@
                         @csrf
                         <x-button type="submit" class="w-full sm:w-auto">Accept Invitation</x-button>
                     </form>
+                </div>
+            @elseif($state === 'pending')
+                <x-alert type="info">Please sign in or create an account with <strong>{{ $invitation->email }}</strong> to continue.</x-alert>
+                <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <a href="{{ route('login') }}"><x-button variant="secondary" class="w-full sm:w-auto">Sign In</x-button></a>
+                    <a href="{{ route('register') }}"><x-button class="w-full sm:w-auto">Create Account</x-button></a>
                 </div>
             @else
                 <x-alert type="info">This invitation has already been {{ $state }}.</x-alert>

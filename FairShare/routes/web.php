@@ -1,30 +1,31 @@
 <?php
 
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ColocationController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InvitationController;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\SettlementController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ExpenseController;
 
 Route::view('/', 'welcome')->name('home');
 
 Route::middleware('guest')->group(function () {
-    Route::view('/login', 'auth.login')->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
-    Route::view('/register', 'auth.register')->name('register');
-    Route::post('/register', [AuthController::class, 'register'])->name('register.store');
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.attempt');
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
 });
 
-Route::post('/logout', function () {
-    Auth::logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
-
-    return redirect()->route('login');
-})->middleware('auth')->name('logout');
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('logout');
 
 Route::middleware('auth')->group(function () {
     Route::redirect('/dashboard', '/dashboard/user')->name('dashboard');
+    Route::get('/profile', [UserController::class, 'profile'])->name('profile.show');
 
     Route::view('/dashboard/user', 'dashboard.user')->name('dashboard.user');
     Route::view('/dashboard/owner', 'dashboard.owner')->name('dashboard.owner');
@@ -38,12 +39,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/{colocation}/manage', [ColocationController::class, 'manage'])->name('manage');
         Route::post('/{colocation}/leave', [ColocationController::class, 'leave'])->name('leave');
         Route::post('/{colocation}/cancel', [ColocationController::class, 'cancel'])->name('cancel');
+        Route::post('/{colocation}/categories', [CategoryController::class, 'store'])->name('categories.store');
+        Route::put('/{colocation}/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/{colocation}/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     });
 
-    Route::view('/expenses', 'expenses.index')->name('expenses.index');
-    Route::view('/expenses/create', 'expenses.create')->name('expenses.create');
+    Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+    Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+    Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+    Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
+    Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
-    Route::view('/balances', 'balances.index')->name('balances.index');
+    Route::get('/balances', [SettlementController::class, 'index'])->name('balances.index');
     Route::view('/admin', 'admin.index')->name('admin.index');
 
     Route::post('/invitations/{colocation}/send', [InvitationController::class, 'invite'])->name('invitations.send');

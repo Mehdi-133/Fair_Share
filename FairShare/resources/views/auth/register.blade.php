@@ -52,6 +52,11 @@
                         <input name="password" type="password" placeholder="********" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20">
                     </div>
 
+                    <div>
+                        <label class="mb-1.5 block text-sm font-semibold text-slate-700">Confirm Password</label>
+                        <input name="password_confirmation" type="password" placeholder="********" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+
                     <x-button class="w-full">Create Account</x-button>
                 </form>
             </x-card>

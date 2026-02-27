@@ -5,14 +5,16 @@
         $recentExpenses = $recentExpenses ?? collect();
     @endphp
 
-    <section class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+    <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-white to-amber-50 p-6">
+        <div class="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-cyan-200/40 blur-2xl"></div>
+        <div class="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
             <h2 class="text-2xl font-bold tracking-tight text-slate-900">Member Dashboard</h2>
             <p class="text-slate-500">Overview of your current shared expenses and balances.</p>
-        </div>
-        <div class="flex gap-2">
-            <a href="{{ route('expenses.create') }}"><x-button>Add Expense</x-button></a>
-            <a href="{{ route('balances.index') }}"><x-button variant="secondary">View Settlements</x-button></a>
+            </div>
+            <div class="flex gap-2">
+                <a href="{{ route('balances.index') }}"><x-button variant="secondary">View Settlements</x-button></a>
+            </div>
         </div>
     </section>
 
@@ -28,7 +30,7 @@
             <x-card title="Recent Expenses" subtitle="Latest shared payments">
                 @if($recentExpenses->isEmpty())
                     <x-empty-state title="No expenses yet" description="Add your first expense to start tracking shared costs.">
-                        <a href="{{ route('expenses.create') }}"><x-button>Add Expense</x-button></a>
+                        <a href="{{ route('colocations.index') }}"><x-button>Go to Colocations</x-button></a>
                     </x-empty-state>
                 @else
                     <x-table>

@@ -16,14 +16,18 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="h-full antialiased text-slate-900">
-    <div class="flex min-h-screen">
+<body class="h-full overflow-hidden antialiased text-slate-900">
+    <div class="h-screen">
         <x-sidebar />
 
-        <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <div class="relative flex h-screen min-w-0 flex-1 flex-col overflow-hidden lg:ml-72">
+            <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+                <div class="absolute -left-20 -top-16 h-72 w-72 rounded-full bg-cyan-100/70 blur-3xl"></div>
+                <div class="absolute -right-24 top-1/3 h-80 w-80 rounded-full bg-amber-100/70 blur-3xl"></div>
+            </div>
             <x-navbar />
 
-            <main class="flex-1 overflow-y-auto p-4 md:p-8">
+            <main class="relative z-10 flex-1 overflow-y-auto p-4 md:p-8">
                 <div class="mx-auto max-w-7xl space-y-8">
                     @if (session('message'))
                         <x-alert type="success">{{ session('message') }}</x-alert>

@@ -1,9 +1,9 @@
 @props(['icon' => 'home', 'active' => false])
 
 @php
-    $base = 'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all';
+    $base = 'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all';
     $state = $active
-        ? 'bg-indigo-50 text-indigo-700'
+        ? 'bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-900 ring-1 ring-cyan-100 shadow-sm'
         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900';
 
     $icons = [
@@ -18,7 +18,10 @@
 @endphp
 
 <a {{ $attributes->merge(['class' => "$base $state"]) }}>
-    <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" aria-hidden="true">
+    @if($active)
+        <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-cyan-500"></span>
+    @endif
+    <svg class="h-5 w-5 shrink-0 {{ $active ? 'text-cyan-700' : '' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $path }}" />
     </svg>
     <span>{{ $slot }}</span>

@@ -115,7 +115,7 @@ class ColocationController extends Controller
             abort(403);
         }
 
-        $colocation->load('users', 'invitations');
+        $colocation->load('users', 'invitations', 'categories');
 
         return view('colocations.manage', compact('colocation'));
     }

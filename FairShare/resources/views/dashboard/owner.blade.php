@@ -3,18 +3,21 @@
         $hasColocation = isset($colocation) && $colocation;
     @endphp
 
-    <section class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+    <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-white to-amber-50 p-6">
+        <div class="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-cyan-200/40 blur-2xl"></div>
+        <div class="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
             <h2 class="text-2xl font-bold tracking-tight text-slate-900">Owner Dashboard</h2>
             <p class="text-slate-500">Manage members, invitations, categories, and colocation settings.</p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-            @if($hasColocation)
-                <a href="{{ route('colocations.manage', $colocation) }}"><x-button variant="secondary">Manage Members</x-button></a>
-            @else
-                <x-button variant="secondary" disabled>Manage Members</x-button>
-            @endif
-            <a href="{{ route('expenses.create') }}"><x-button>Add Expense</x-button></a>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                @if($hasColocation)
+                    <a href="{{ route('colocations.manage', $colocation) }}"><x-button variant="secondary">Manage Members</x-button></a>
+                @else
+                    <x-button variant="secondary" disabled>Manage Members</x-button>
+                @endif
+                <a href="{{ route('expenses.create') }}"><x-button>Add Expense</x-button></a>
+            </div>
         </div>
     </section>
 

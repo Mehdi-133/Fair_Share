@@ -13,7 +13,8 @@ class Expense extends Model
     protected $fillable = [
 
         'title',
-        'amount ',
+        'amount',
+        'description',
         'date',
         'category_id',
         'colocation_id',
@@ -24,6 +25,7 @@ class Expense extends Model
     protected $casts = [
         'date' => 'date',
         'amount' => 'decimal:2'
+        
     ];
 
     public function payer()

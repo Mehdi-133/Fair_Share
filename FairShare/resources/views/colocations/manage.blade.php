@@ -1,10 +1,13 @@
 <x-app-layout>
-    <section class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+    <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-white to-amber-50 p-6">
+        <div class="absolute -left-16 -top-16 h-40 w-40 rounded-full bg-cyan-200/35 blur-2xl"></div>
+        <div class="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
             <h2 class="text-2xl font-bold tracking-tight text-slate-900">Manage Colocation</h2>
             <p class="text-slate-500">Manage invitations, members, and colocation actions.</p>
+            </div>
+            <a href="{{ route('colocations.show', $colocation) }}"><x-button variant="secondary">Back to Details</x-button></a>
         </div>
-        <a href="{{ route('colocations.show', $colocation) }}"><x-button variant="secondary">Back to Details</x-button></a>
     </section>
 
     <section class="space-y-6">
@@ -35,6 +38,48 @@
                 @endif
             </x-card>
         </div>
+
+        <x-card title="Categories Management" subtitle="Create, rename, or delete expense categories">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div>
+                    <form method="POST" action="{{ route('colocations.categories.store', $colocation) }}" class="space-y-3">
+                        @csrf
+                        <label class="mb-1 block text-sm font-medium text-slate-700">New Category</label>
+                        <div class="flex gap-2">
+                            <input name="name" type="text" maxlength="50" placeholder="e.g. Groceries" class="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" required>
+                            <x-button type="submit">Add</x-button>
+                        </div>
+                    </form>
+                </div>
+
+                <div>
+                    @if(($colocation->categories ?? collect())->isEmpty())
+                        <x-empty-state title="No categories" description="Create your first category to organize expenses." />
+                    @else
+                        <ul class="space-y-3">
+                            @foreach($colocation->categories->sortBy('name') as $category)
+                                <li class="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                        <form method="POST" action="{{ route('colocations.categories.update', [$colocation, $category]) }}" class="flex flex-1 items-center gap-2">
+                                            @csrf
+                                            @method('PUT')
+                                            <input name="name" type="text" value="{{ $category->name }}" maxlength="50" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" required>
+                                            <x-button type="submit" variant="secondary" class="!px-3 !py-2">Rename</x-button>
+                                        </form>
+
+                                        <form method="POST" action="{{ route('colocations.categories.destroy', [$colocation, $category]) }}" onsubmit="return confirm('Delete this category?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <x-button type="submit" variant="danger" class="!px-3 !py-2">Delete</x-button>
+                                        </form>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            </div>
+        </x-card>
 
         <div class="grid grid-cols-1 items-start gap-6 xl:grid-cols-3">
             <x-card title="Members Management" class="xl:col-span-2">
