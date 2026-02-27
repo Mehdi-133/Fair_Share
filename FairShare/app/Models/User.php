@@ -82,10 +82,15 @@ class User extends Authenticatable
     }
 
 
-    //helper method
-      public function isGlobalAdmin()
+    // Global admin is either flagged in DB or hardcoded by email in config.
+    public function isGlobalAdmin(): bool
     {
-        return $this->role === 'admin';
+        $email = strtolower(trim((string) $this->email));
+        $configuredEmails = config('app.global_admin_emails', []);
+
+        return (bool) ($this->is_admin ?? false)
+            || (($this->role ?? null) === 'admin')
+            || in_array($email, $configuredEmails, true);
     }
 
     //is this a owener of specific coloc 
@@ -101,4 +106,3 @@ class User extends Authenticatable
     }
 
 }
-

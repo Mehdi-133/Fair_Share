@@ -15,16 +15,16 @@
     </div>
 
     <nav class="flex-1 space-y-1 px-3 py-4">
-        <p class="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Workspace</p>
-        <x-sidebar-link :href="route('dashboard.user')" icon="home" :active="request()->routeIs('dashboard.*')">Dashboard</x-sidebar-link>
-        <x-sidebar-link :href="route('colocations.index')" icon="users" :active="request()->routeIs('colocations.*')">Colocations</x-sidebar-link>
-        <x-sidebar-link :href="route('expenses.index')" icon="receipt" :active="request()->routeIs('expenses.*')">Expenses</x-sidebar-link>
-        <x-sidebar-link :href="route('balances.index')" icon="chart" :active="request()->routeIs('balances.*')">Balances</x-sidebar-link>
-
-        @if(auth()->check() && auth()->user()->isGlobalAdmin())
+        @if(auth()->check() && ((auth()->user()->role ?? null) === 'admin' || auth()->user()->isGlobalAdmin()))
             <div class="px-2 pt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Administration</div>
             <x-sidebar-link :href="route('dashboard.admin')" icon="chart" :active="request()->routeIs('dashboard.admin')">Admin Dashboard</x-sidebar-link>
             <x-sidebar-link :href="route('admin.index')" icon="shield" :active="request()->routeIs('admin.*')">User Management</x-sidebar-link>
+        @else
+            <p class="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Workspace</p>
+            <x-sidebar-link :href="route('dashboard.user')" icon="home" :active="request()->routeIs('dashboard.*')">Dashboard</x-sidebar-link>
+            <x-sidebar-link :href="route('colocations.index')" icon="users" :active="request()->routeIs('colocations.*')">Colocations</x-sidebar-link>
+            <x-sidebar-link :href="route('expenses.index')" icon="receipt" :active="request()->routeIs('expenses.*')">Expenses</x-sidebar-link>
+            <x-sidebar-link :href="route('balances.index')" icon="chart" :active="request()->routeIs('balances.*')">Balances</x-sidebar-link>
         @endif
     </nav>
 

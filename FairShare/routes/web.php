@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InvitationController;
@@ -29,7 +30,9 @@ Route::middleware('auth')->group(function () {
 
     Route::view('/dashboard/user', 'dashboard.user')->name('dashboard.user');
     Route::view('/dashboard/owner', 'dashboard.owner')->name('dashboard.owner');
-    Route::view('/dashboard/admin', 'dashboard.admin')->name('dashboard.admin');
+    Route::get('/dashboard/admin', [AdminController::class, 'dashboard'])
+        ->middleware('global.admin')
+        ->name('dashboard.admin');
 
     Route::prefix('colocations')->name('colocations.')->group(function () {
         Route::get('/', [ColocationController::class, 'index'])->name('index');
@@ -52,7 +55,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
     Route::get('/balances', [SettlementController::class, 'index'])->name('balances.index');
-    Route::view('/admin', 'admin.index')->name('admin.index');
+    Route::get('/admin', [AdminController::class, 'index'])
+        ->middleware('global.admin')
+        ->name('admin.index');
 
     Route::post('/invitations/{colocation}/send', [InvitationController::class, 'invite'])->name('invitations.send');
 
