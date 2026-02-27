@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Colocation;
+use App\Services\SettlementCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -11,12 +12,24 @@ use Illuminate\Support\Str;
 
 class ColocationController extends Controller
 {
+    public function __construct(private SettlementCalculator $settlementCalculator)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $colocations = Colocation::with('users')->latest()->get();
+        $userId = Auth::id();
+
+        $colocations = Colocation::with('users')
+            ->whereHas('users', function ($query) use ($userId) {
+                $query->where('users.id', $userId);
+            })
+            ->latest()
+            ->get();
+
         $canCreateColocation = !$this->userHasActiveColocation(Auth::id());
 
         return view('colocations.index', compact('colocations', 'canCreateColocation'));
@@ -74,13 +87,20 @@ class ColocationController extends Controller
      */
     public function show(Colocation $colocation)
     {
+        if (! $this->userBelongsToColocation((int) Auth::id(), $colocation)) {
+            abort(403);
+        }
+
         $colocation->load([
             'users',
             'expenses.category',
+            'expenses.payer',
             'categories'
         ]);
 
-        return view('colocations.show', compact('colocation'));
+        $settlementSummary = $this->settlementCalculator->recalculateForColocation($colocation);
+
+        return view('colocations.show', compact('colocation', 'settlementSummary'));
     }
 
     public function manage(Colocation $colocation)
@@ -172,6 +192,14 @@ class ColocationController extends Controller
                 $query->where('users.id', $userId)
                     ->whereNull('colocation_user.left_at');
             })
+            ->exists();
+    }
+
+    private function userBelongsToColocation(int $userId, Colocation $colocation): bool
+    {
+        return $colocation->users()
+            ->where('users.id', $userId)
+            ->whereNull('colocation_user.left_at')
             ->exists();
     }
 }

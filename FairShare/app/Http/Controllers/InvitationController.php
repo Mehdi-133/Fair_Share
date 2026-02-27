@@ -44,6 +44,10 @@ class InvitationController extends Controller
         $invitation = Invitation::where('token', $token)->firstOrFail();
         $colocation = $invitation->colocation;
 
+        if (! Auth::check() && $invitation->status === 'pending') {
+            session(['invitation_token' => $invitation->token]);
+        }
+
         return view('invitations.show', compact('invitation', 'colocation'));
     }
 
