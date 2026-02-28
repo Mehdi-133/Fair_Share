@@ -8,7 +8,7 @@
                 </svg>
             </span>
             <div>
-                <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-cyan-600">EasyColoc</p>
+                <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-cyan-600">FairShare</p>
                 <h1 class="text-sm font-semibold text-slate-900 sm:text-base">Shared Expenses Dashboard</h1>
             </div>
         </div>

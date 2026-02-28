@@ -8,8 +8,8 @@
                 </svg>
             </span>
             <span>
-                <span class="block text-lg font-black tracking-tight text-slate-900">EasyColoc</span>
-                <span class="block text-xs font-medium text-slate-500">Shared living workspace</span>
+                <span class="block text-lg font-black tracking-tight text-slate-900">FairShare</span>
+                <span class="block text-xs font-medium text-slate-500">Shared living finance</span>
             </span>
         </a>
     </div>
