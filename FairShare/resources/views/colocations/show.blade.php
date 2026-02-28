@@ -4,6 +4,8 @@
         $expenses = $colocation->expenses ?? collect();
         $summary = $settlementSummary ?? ['total' => 0, 'share' => 0, 'balances' => collect(), 'settlements' => []];
         $isCancelled = ($colocation->status ?? null) === 'cancelled';
+        $isFormerMember = (bool) ($isFormerMember ?? false);
+        $isReadOnly = $isCancelled || $isFormerMember;
     @endphp
 
     <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-white to-amber-50 p-6">
@@ -14,10 +16,10 @@
             <p class="text-slate-500">{{ $colocation->description ?? 'Manage members and expenses.' }}</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                @if(!$isCancelled)
+                @if(!$isReadOnly)
                     <a href="{{ route('expenses.create') }}"><x-button>Add Expense</x-button></a>
                 @else
-                    <x-badge type="warning">Read-only (Cancelled)</x-badge>
+                    <x-badge type="warning">Read-only</x-badge>
                 @endif
             </div>
         </div>
@@ -83,7 +85,7 @@
             </x-card>
         </div>
 
-        <x-card title="Members List" :subtitle="$isCancelled ? 'Roles overview' : 'Roles and actions'">
+        <x-card title="Members List" :subtitle="$isReadOnly ? 'Roles overview' : 'Roles and actions'">
             <ul class="space-y-3">
                 @foreach($users as $member)
                     <li class="flex items-center justify-between rounded-xl border border-slate-100 p-3">
@@ -96,7 +98,7 @@
                 @endforeach
             </ul>
 
-            @if(!$isCancelled)
+            @if(!$isReadOnly)
                 <div class="mt-4 space-y-2 border-t border-slate-100 pt-4">
                     <form method="POST" action="{{ route('colocations.leave', $colocation) }}">
                         @csrf

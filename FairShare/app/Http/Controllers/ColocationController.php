@@ -6,6 +6,8 @@ use App\Models\Colocation;
 use App\Services\SettlementCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 
@@ -87,9 +89,16 @@ class ColocationController extends Controller
      */
     public function show(Colocation $colocation)
     {
-        if (! $this->userBelongsToColocation((int) Auth::id(), $colocation)) {
+        $userId = (int) Auth::id();
+        $membership = $colocation->users()
+            ->where('users.id', $userId)
+            ->first();
+
+        if (! $membership) {
             abort(403);
         }
+
+        $isFormerMember = ! is_null($membership->pivot->left_at);
 
         $colocation->load([
             'users',
@@ -100,7 +109,7 @@ class ColocationController extends Controller
 
         $settlementSummary = $this->settlementCalculator->recalculateForColocation($colocation);
 
-        return view('colocations.show', compact('colocation', 'settlementSummary'));
+        return view('colocations.show', compact('colocation', 'settlementSummary', 'isFormerMember'));
     }
 
     public function manage(Colocation $colocation)
@@ -129,15 +138,30 @@ class ColocationController extends Controller
                 ->withErrors('This colocation is cancelled and read-only.');
         }
 
-        if ($colocation->isOwner(Auth::id())) {
+        $userId = (int) Auth::id();
+
+        if ($colocation->isOwner($userId)) {
             return back()->withErrors('Owner cannot leave.');
         }
 
-        $colocation->users()->updateExistingPivot(Auth::id(), [
+        $activeMembership = $colocation->users()
+            ->where('users.id', $userId)
+            ->whereNull('colocation_user.left_at')
+            ->exists();
+
+        if (! $activeMembership) {
+            return back()->withErrors('You are no longer an active member of this colocation.');
+        }
+
+        $this->transferLeavingMemberDebtToOwner($colocation, $userId);
+
+        $colocation->users()->updateExistingPivot($userId, [
             'left_at' => now()
         ]);
 
-        return redirect()->route('dashboard');
+        return redirect()
+            ->route('colocations.show', $colocation)
+            ->with('message', 'You left the colocation. You can still view details in read-only mode.');
     }
 
     public function cancel(Colocation $colocation)
@@ -150,6 +174,23 @@ class ColocationController extends Controller
 
         if (!$colocation->isOwner(Auth::id())) {
             abort(403);
+        }
+
+        $activeNonOwnerCount = $colocation->users()
+            ->wherePivotNull('left_at')
+            ->wherePivot('role', '!=', 'owner')
+            ->count();
+
+        $summary = $this->settlementCalculator->recalculateForColocation($colocation);
+        $hasOutstandingDebt = !empty($summary['settlements']);
+
+        // Cancel is allowed if:
+        // 1) no other active members remain, OR
+        // 2) there is no outstanding debt.
+        if ($activeNonOwnerCount > 0 && $hasOutstandingDebt) {
+            return back()->withErrors(
+                'Cannot cancel yet. Remove all other active members or settle all debts first.'
+            );
         }
 
         $colocation->update([
@@ -201,5 +242,44 @@ class ColocationController extends Controller
             ->where('users.id', $userId)
             ->whereNull('colocation_user.left_at')
             ->exists();
+    }
+
+    private function transferLeavingMemberDebtToOwner(Colocation $colocation, int $leavingUserId): void
+    {
+        $summary = $this->settlementCalculator->recalculateForColocation($colocation);
+
+        $balance = collect($summary['balances'])
+            ->first(fn (array $row) => (int) $row['user']->id === $leavingUserId);
+
+        if (! $balance) {
+            return;
+        }
+
+        $owedAmount = abs((float) $balance['balance']);
+        if ((float) $balance['balance'] >= 0 || $owedAmount <= 0.00001) {
+            return;
+        }
+
+        $owner = $colocation->users()
+            ->wherePivot('role', 'owner')
+            ->wherePivotNull('left_at')
+            ->first();
+
+        if (! $owner) {
+            return;
+        }
+
+        $senderColumn = Schema::hasColumn('settlements', 'sender_id') ? 'sender_id' : 'payer_id';
+        $receiverColumn = Schema::hasColumn('settlements', 'received_id') ? 'received_id' : 'receiver_id';
+
+        DB::table('settlements')->insert([
+            $senderColumn => $leavingUserId,
+            $receiverColumn => (int) $owner->id,
+            'expense_id' => null,
+            'amount' => round($owedAmount, 2),
+            'paid_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }

@@ -104,14 +104,33 @@
             </x-card>
 
             <x-card title="Danger Zone">
-                <p class="mb-4 text-sm text-slate-600">Cancel this colocation permanently (UI confirmation only).</p>
-                <button x-data @click="$dispatch('open-modal', 'cancel-colocation-modal')" class="w-full rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100">Cancel Colocation</button>
+                <div class="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5 rounded-xl bg-rose-100 p-2 text-rose-700">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86l-8.08 14A2 2 0 003.92 21h16.16a2 2 0 001.71-3.14l-8.08-14a2 2 0 00-3.42 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-rose-800">Cancel this colocation permanently</p>
+                            <p class="mt-1 text-sm text-rose-700/90">This action makes the colocation read-only for everyone.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 rounded-xl border border-rose-100 bg-white/80 px-3 py-2 text-xs text-rose-800">
+                        Allowed only when there is no outstanding debt, or no other active members remain.
+                    </div>
+
+                    <button x-data @click="$dispatch('open-modal', 'cancel-colocation-modal')" class="mt-4 w-full rounded-xl border border-rose-300 bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-rose-200 transition hover:bg-rose-700">
+                        Cancel Colocation
+                    </button>
+                </div>
             </x-card>
         </div>
     </section>
 
     <x-modal name="cancel-colocation-modal" title="Cancel Colocation">
-        <p class="text-sm text-slate-600">Are you sure you want to cancel this colocation?</p>
+        <p class="text-sm text-slate-600">This action is irreversible. Are you sure you want to cancel this colocation?</p>
         <form method="POST" action="{{ route('colocations.cancel', $colocation) }}" class="mt-5 flex justify-end gap-2">
             @csrf
             <x-button type="button" variant="secondary" @click="show = false">Close</x-button>

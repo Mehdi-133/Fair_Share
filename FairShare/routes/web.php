@@ -24,7 +24,11 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
-Route::middleware('auth')->group(function () {
+Route::view('/blocked', 'auth.blocked')
+    ->middleware('auth')
+    ->name('blocked');
+
+Route::middleware(['auth', 'not.banned'])->group(function () {
     Route::redirect('/dashboard', '/dashboard/user')->name('dashboard');
     Route::get('/profile', [UserController::class, 'profile'])->name('profile.show');
 
@@ -59,6 +63,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])
         ->middleware('global.admin')
         ->name('admin.index');
+    Route::post('/admin/users/{user}/ban', [AdminController::class, 'banUser'])
+        ->middleware('global.admin')
+        ->name('admin.users.ban');
+    Route::post('/admin/users/{user}/unban', [AdminController::class, 'unbanUser'])
+        ->middleware('global.admin')
+        ->name('admin.users.unban');
 
     Route::post('/invitations/{colocation}/send', [InvitationController::class, 'invite'])->name('invitations.send');
 

@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Colocation;
 use App\Services\SettlementCalculator;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -28,6 +28,34 @@ class UserController extends Controller
             ->first();
 
         if (! $colocation) {
+            $lastColocationId = DB::table('colocation_user')
+                ->where('user_id', $userId)
+                ->orderByDesc('updated_at')
+                ->value('colocation_id');
+
+            if ($lastColocationId) {
+                $formerColocation = Colocation::query()
+                    ->with([
+                        'expenses' => function ($query) {
+                            $query->with(['category', 'payer'])->latest();
+                        },
+                    ])
+                    ->find($lastColocationId);
+
+                if ($formerColocation) {
+                    return view('dashboard.user', [
+                        'colocation' => $formerColocation,
+                        'recentExpenses' => $formerColocation->expenses->take(7),
+                        'currentBalance' => 0,
+                        'paidByUser' => (float) $formerColocation->expenses->where('payer_id', $userId)->sum('amount'),
+                        'individualShare' => 0,
+                        'totalExpenses' => (float) $formerColocation->expenses->sum('amount'),
+                        'pendingSettlements' => collect(),
+                        'isFormerMemberView' => true,
+                    ]);
+                }
+            }
+
             return view('dashboard.user', [
                 'colocation' => null,
                 'recentExpenses' => collect(),
@@ -36,6 +64,7 @@ class UserController extends Controller
                 'individualShare' => 0,
                 'totalExpenses' => 0,
                 'pendingSettlements' => collect(),
+                'isFormerMemberView' => false,
             ]);
         }
 
@@ -61,6 +90,7 @@ class UserController extends Controller
             'individualShare' => (float) ($summary['share'] ?? 0),
             'totalExpenses' => (float) ($summary['total'] ?? 0),
             'pendingSettlements' => $pendingSettlements,
+            'isFormerMemberView' => false,
         ]);
     }
 
@@ -69,59 +99,5 @@ class UserController extends Controller
         return view('users.profile');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 }
+

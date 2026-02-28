@@ -73,9 +73,17 @@
 
     <x-modal name="cancel-colocation-modal" title="Cancel Colocation">
         <p class="text-sm text-slate-600">This is a destructive action. Are you sure you want to cancel this colocation?</p>
-        <div class="mt-5 flex justify-end gap-2">
-            <x-button variant="secondary" @click="show = false">Keep Colocation</x-button>
-            <x-button variant="danger" disabled>Yes, Cancel</x-button>
-        </div>
+        @if($hasColocation)
+            <form method="POST" action="{{ route('colocations.cancel', $colocation) }}" class="mt-5 flex justify-end gap-2">
+                @csrf
+                <x-button type="button" variant="secondary" @click="show = false">Keep Colocation</x-button>
+                <x-button type="submit" variant="danger">Yes, Cancel</x-button>
+            </form>
+        @else
+            <div class="mt-5 flex justify-end gap-2">
+                <x-button type="button" variant="secondary" @click="show = false">Keep Colocation</x-button>
+                <x-button variant="danger" disabled>Yes, Cancel</x-button>
+            </div>
+        @endif
     </x-modal>
 </x-app-layout>

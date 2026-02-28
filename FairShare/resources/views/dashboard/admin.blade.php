@@ -10,6 +10,13 @@
         </div>
     </section>
 
+    @if(session('success'))
+        <x-alert type="success">{{ session('success') }}</x-alert>
+    @endif
+    @if($errors->any())
+        <x-alert type="danger">{{ $errors->first() }}</x-alert>
+    @endif
+
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         <x-card title="Total Users"><p class="text-3xl font-bold text-slate-900">{{ $totalUsers ?? 0 }}</p></x-card>
         <x-card title="Total Colocations"><p class="text-3xl font-bold text-slate-900">{{ $totalColocations ?? 0 }}</p></x-card>
@@ -89,7 +96,12 @@
                         <td class="font-semibold text-slate-900">{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
                         <td><x-badge type="danger">Banned</x-badge></td>
-                        <td class="text-right"><x-button variant="secondary" class="!px-3 !py-1.5">Unban</x-button></td>
+                        <td class="text-right">
+                            <form method="POST" action="{{ route('admin.users.unban', $user) }}" class="inline-block">
+                                @csrf
+                                <x-button type="submit" variant="secondary" class="!px-3 !py-1.5">Unban</x-button>
+                            </form>
+                        </td>
                     </tr>
                 @endforeach
             </x-table>

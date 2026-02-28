@@ -9,6 +9,13 @@
         </div>
     </section>
 
+    @if(session('success'))
+        <x-alert type="success">{{ session('success') }}</x-alert>
+    @endif
+    @if($errors->any())
+        <x-alert type="danger">{{ $errors->first() }}</x-alert>
+    @endif
+
     <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
         <x-card title="Users"><p class="text-2xl font-bold text-slate-900">{{ $totalUsers ?? 0 }}</p></x-card>
         <x-card title="Colocations"><p class="text-2xl font-bold text-slate-900">{{ $totalColocations ?? 0 }}</p></x-card>
@@ -79,9 +86,15 @@
                     </td>
                     <td class="text-right">
                         @if(($u->is_banned ?? false) || ($u->is_baned ?? false))
-                            <x-button variant="secondary" class="!px-3 !py-1.5">Unban</x-button>
+                            <form method="POST" action="{{ route('admin.users.unban', $u) }}" class="inline-block">
+                                @csrf
+                                <x-button type="submit" variant="secondary" class="!px-3 !py-1.5">Unban</x-button>
+                            </form>
                         @else
-                            <x-button variant="danger" class="!px-3 !py-1.5">Ban</x-button>
+                            <form method="POST" action="{{ route('admin.users.ban', $u) }}" class="inline-block">
+                                @csrf
+                                <x-button type="submit" variant="danger" class="!px-3 !py-1.5">Ban</x-button>
+                            </form>
                         @endif
                     </td>
                 </tr>

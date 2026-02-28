@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'global.admin' => \App\Http\Middleware\EnsureGlobalAdmin::class,
+            'not.banned' => \App\Http\Middleware\EnsureNotBanned::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

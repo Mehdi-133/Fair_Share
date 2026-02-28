@@ -93,6 +93,11 @@ class User extends Authenticatable
             || in_array($email, $configuredEmails, true);
     }
 
+    public function isBanned(): bool
+    {
+        return (bool) (($this->is_banned ?? false) || ($this->is_baned ?? false));
+    }
+
     //is this a owener of specific coloc 
 
 

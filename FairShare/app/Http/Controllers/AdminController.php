@@ -6,6 +6,8 @@ use App\Models\Colocation;
 use App\Models\Expense;
 use App\Models\Invitation;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -27,6 +29,40 @@ class AdminController extends Controller
                 ->latest()
                 ->paginate(15),
         ]));
+    }
+
+    public function banUser(Request $request, User $user): RedirectResponse
+    {
+        $authUser = $request->user();
+
+        if ($authUser && (int) $authUser->id === (int) $user->id) {
+            return back()->withErrors('You cannot ban your own account.');
+        }
+
+        if ($user->isGlobalAdmin()) {
+            return back()->withErrors('You cannot ban another global admin.');
+        }
+
+        $banColumn = $this->banColumn();
+        if (! $banColumn) {
+            return back()->withErrors('Ban feature is unavailable. Missing banned column on users table.');
+        }
+
+        $user->forceFill([$banColumn => true])->save();
+
+        return back()->with('success', $user->name . ' has been banned.');
+    }
+
+    public function unbanUser(User $user): RedirectResponse
+    {
+        $banColumn = $this->banColumn();
+        if (! $banColumn) {
+            return back()->withErrors('Unban feature is unavailable. Missing banned column on users table.');
+        }
+
+        $user->forceFill([$banColumn => false])->save();
+
+        return back()->with('success', $user->name . ' has been unbanned.');
     }
 
     private function buildStats(): array
@@ -101,20 +137,27 @@ class AdminController extends Controller
 
     private function getBannedUsers(): Collection
     {
-        if (Schema::hasColumn('users', 'is_banned')) {
+        $banColumn = $this->banColumn();
+        if ($banColumn) {
             return User::query()
-                ->where('is_banned', true)
-                ->latest()
-                ->get();
-        }
-
-        if (Schema::hasColumn('users', 'is_baned')) {
-            return User::query()
-                ->where('is_baned', true)
+                ->where($banColumn, true)
                 ->latest()
                 ->get();
         }
 
         return collect();
+    }
+
+    private function banColumn(): ?string
+    {
+        if (Schema::hasColumn('users', 'is_banned')) {
+            return 'is_banned';
+        }
+
+        if (Schema::hasColumn('users', 'is_baned')) {
+            return 'is_baned';
+        }
+
+        return null;
     }
 }
