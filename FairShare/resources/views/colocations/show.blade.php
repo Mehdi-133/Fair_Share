@@ -91,7 +91,8 @@
                     <li class="flex items-center justify-between rounded-xl border border-slate-100 p-3">
                         <div>
                             <p class="font-medium text-slate-900">{{ $member->name }}</p>
-                            <p class="text-xs text-slate-500">{{ $member->email }}</p>
+                            @php $rep = (int) (($member->reputations ?? collect())->sum('score')); @endphp
+                            <p class="text-xs text-slate-500">{{ $member->email }} • Rep: <span class="{{ $rep >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ $rep >= 0 ? '+' : '' }}{{ $rep }}</span></p>
                         </div>
                         <x-badge :type="$member->pivot->role === 'owner' ? 'primary' : 'neutral'">{{ ucfirst($member->pivot->role) }}</x-badge>
                     </li>

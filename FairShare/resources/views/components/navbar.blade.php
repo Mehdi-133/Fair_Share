@@ -14,6 +14,9 @@
         </div>
 
         @auth
+            @php
+                $repTotal = \App\Http\Controllers\ReputationController::totalForUser((int) auth()->id());
+            @endphp
             <div class="relative" x-data="{ open: false }">
                 <button
                     type="button"
@@ -24,6 +27,9 @@
                     aria-haspopup="true"
                 >
                     <div class="hidden text-right sm:block">
+                        <p class="text-xs font-semibold {{ $repTotal >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">
+                            Rep: {{ $repTotal >= 0 ? '+' : '' }}{{ $repTotal }}
+                        </p>
                         <p class="text-sm font-semibold text-slate-900 leading-tight">{{ auth()->user()->name }}</p>
                         <p class="max-w-48 truncate text-xs text-slate-500">{{ auth()->user()->email }}</p>
                     </div>

@@ -87,6 +87,7 @@
                     <x-slot name="head">
                         <th>Name</th>
                         <th>Email</th>
+                        <th>Reputation</th>
                         <th>Role</th>
                         <th class="text-right">Actions</th>
                     </x-slot>
@@ -94,6 +95,10 @@
                         <tr>
                             <td class="font-semibold text-slate-900">{{ $member->name }}</td>
                             <td>{{ $member->email }}</td>
+                            <td>
+                                @php $rep = (int) (($member->reputations ?? collect())->sum('score')); @endphp
+                                <span class="font-semibold {{ $rep >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ $rep >= 0 ? '+' : '' }}{{ $rep }}</span>
+                            </td>
                             <td><x-badge :type="$member->pivot->role === 'owner' ? 'primary' : 'neutral'">{{ ucfirst($member->pivot->role) }}</x-badge></td>
                             <td class="text-right">
                                 <x-button variant="danger" class="!px-3 !py-1.5" :disabled="$member->pivot->role === 'owner'">Remove</x-button>

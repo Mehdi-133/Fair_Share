@@ -64,6 +64,7 @@
             <x-slot name="head">
                 <th>Name</th>
                 <th>Email</th>
+                <th>Reputation</th>
                 <th>Status</th>
                 <th class="text-right">Actions</th>
             </x-slot>
@@ -77,6 +78,10 @@
                 <tr>
                     <td class="font-semibold text-slate-900">{{ $u->name }}</td>
                     <td>{{ $u->email }}</td>
+                    <td>
+                        @php $rep = (int) ($u->reputation_total ?? 0); @endphp
+                        <span class="font-semibold {{ $rep >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ $rep >= 0 ? '+' : '' }}{{ $rep }}</span>
+                    </td>
                     <td>
                         @if(($u->is_banned ?? false) || ($u->is_baned ?? false))
                             <x-badge type="danger">Banned</x-badge>
@@ -100,7 +105,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="4" class="text-center text-sm text-slate-500">No users available.</td>
+                    <td colspan="5" class="text-center text-sm text-slate-500">No users available.</td>
                 </tr>
             @endforelse
         </x-table>

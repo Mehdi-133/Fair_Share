@@ -26,6 +26,7 @@ class AdminController extends Controller
     {
         return view('admin.index', array_merge($this->buildStats(), [
             'users' => User::query()
+                ->withSum('reputations as reputation_total', 'score')
                 ->latest()
                 ->paginate(15),
         ]));

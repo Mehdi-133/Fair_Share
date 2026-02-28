@@ -2,63 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Reputation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class ReputationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public static function recordLeaveOutcome(int $userId, bool $leftWithDebt, ?int $colocationId = null): Reputation
     {
-        //
+        $score = $leftWithDebt ? -1 : 1;
+        $reason = $leftWithDebt
+            ? 'Left colocation' . ($colocationId ? (' #' . $colocationId) : '') . ' with debt'
+            : 'Left colocation' . ($colocationId ? (' #' . $colocationId) : '') . ' without debt';
+
+        return Reputation::create([
+            'user_id' => $userId,
+            'score' => $score,
+            'reason' => $reason,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public static function totalForUser(int $userId): int
     {
-        //
+        return (int) Reputation::query()
+            ->where('user_id', $userId)
+            ->sum('score');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public static function historyForUser(int $userId, int $limit = 20): Collection
     {
-        //
+        return Reputation::query()
+            ->where('user_id', $userId)
+            ->latest()
+            ->limit($limit)
+            ->get();
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 }

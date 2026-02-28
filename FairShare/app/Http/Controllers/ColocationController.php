@@ -101,7 +101,7 @@ class ColocationController extends Controller
         $isFormerMember = ! is_null($membership->pivot->left_at);
 
         $colocation->load([
-            'users',
+            'users.reputations',
             'expenses.category',
             'expenses.payer',
             'categories'
@@ -124,7 +124,7 @@ class ColocationController extends Controller
             abort(403);
         }
 
-        $colocation->load('users', 'invitations', 'categories');
+        $colocation->load('users.reputations', 'invitations', 'categories');
 
         return view('colocations.manage', compact('colocation'));
     }
@@ -153,7 +153,8 @@ class ColocationController extends Controller
             return back()->withErrors('You are no longer an active member of this colocation.');
         }
 
-        $this->transferLeavingMemberDebtToOwner($colocation, $userId);
+        $leftWithDebt = $this->transferLeavingMemberDebtToOwner($colocation, $userId);
+        ReputationController::recordLeaveOutcome($userId, $leftWithDebt, (int) $colocation->id);
 
         $colocation->users()->updateExistingPivot($userId, [
             'left_at' => now()
@@ -161,7 +162,7 @@ class ColocationController extends Controller
 
         return redirect()
             ->route('colocations.show', $colocation)
-            ->with('message', 'You left the colocation. You can still view details in read-only mode.');
+            ->with('message', 'You left the colocation. Reputation updated (' . ($leftWithDebt ? '-1' : '+1') . ').');
     }
 
     public function cancel(Colocation $colocation)
@@ -244,7 +245,7 @@ class ColocationController extends Controller
             ->exists();
     }
 
-    private function transferLeavingMemberDebtToOwner(Colocation $colocation, int $leavingUserId): void
+    private function transferLeavingMemberDebtToOwner(Colocation $colocation, int $leavingUserId): bool
     {
         $summary = $this->settlementCalculator->recalculateForColocation($colocation);
 
@@ -252,12 +253,12 @@ class ColocationController extends Controller
             ->first(fn (array $row) => (int) $row['user']->id === $leavingUserId);
 
         if (! $balance) {
-            return;
+            return false;
         }
 
         $owedAmount = abs((float) $balance['balance']);
         if ((float) $balance['balance'] >= 0 || $owedAmount <= 0.00001) {
-            return;
+            return false;
         }
 
         $owner = $colocation->users()
@@ -266,7 +267,7 @@ class ColocationController extends Controller
             ->first();
 
         if (! $owner) {
-            return;
+            return true;
         }
 
         $senderColumn = Schema::hasColumn('settlements', 'sender_id') ? 'sender_id' : 'payer_id';
@@ -281,5 +282,7 @@ class ColocationController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        return true;
     }
 }

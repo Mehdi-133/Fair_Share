@@ -4,6 +4,7 @@
         $colocationName = $col?->name ?? 'No Active Colocation';
         $recentExpenses = $recentExpenses ?? collect();
         $pendingSettlements = collect($pendingSettlements ?? []);
+        $canLeaveColocation = (bool) ($canLeaveColocation ?? false);
     @endphp
 
     <section class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-cyan-50 via-white to-amber-50 p-6">
@@ -14,6 +15,12 @@
             <p class="text-slate-500">Overview of your current shared expenses and balances.</p>
             </div>
             <div class="flex gap-2">
+                @if($col && $canLeaveColocation)
+                    <form method="POST" action="{{ route('colocations.leave', $col) }}" onsubmit="return confirm('Are you sure you want to leave this colocation?');">
+                        @csrf
+                        <x-button variant="secondary">Leave Colocation</x-button>
+                    </form>
+                @endif
                 <a href="{{ route('balances.index') }}"><x-button variant="secondary">View Settlements</x-button></a>
             </div>
         </div>

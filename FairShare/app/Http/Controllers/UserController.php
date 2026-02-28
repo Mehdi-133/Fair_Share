@@ -65,8 +65,14 @@ class UserController extends Controller
                 'totalExpenses' => 0,
                 'pendingSettlements' => collect(),
                 'isFormerMemberView' => false,
+                'canLeaveColocation' => false,
             ]);
         }
+
+        $currentMembershipRole = $colocation->users()
+            ->where('users.id', $userId)
+            ->whereNull('colocation_user.left_at')
+            ->value('colocation_user.role');
 
         $summary = $settlementCalculator->recalculateForColocation($colocation);
 
@@ -91,13 +97,19 @@ class UserController extends Controller
             'totalExpenses' => (float) ($summary['total'] ?? 0),
             'pendingSettlements' => $pendingSettlements,
             'isFormerMemberView' => false,
+            'canLeaveColocation' => $currentMembershipRole !== 'owner',
         ]);
     }
 
     public function profile()
     {
-        return view('users.profile');
+        $user = Auth::user();
+
+        return view('users.profile', [
+            'user' => $user,
+            'reputationTotal' => ReputationController::totalForUser((int) $user->id),
+            'reputationHistory' => ReputationController::historyForUser((int) $user->id, 15),
+        ]);
     }
 
 }
-
